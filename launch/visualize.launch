@@ -1,0 +1,18 @@
+<launch>
+	<arg name="publish_rate" default="60"/>
+	<!-- <arg name="arg1" default="0"/> -->
+
+	<node name="force_visualize_node" pkg="multi_modal_force_rendering" type="force_visualize_node" output="screen">
+		<param name="publish_rate" value="$(arg publish_rate)"/>
+
+		<!-- <remap from="test_pub" to="test_pub" /> -->
+		<!-- <remap from="test_sub" to="test_sub" /> -->
+	</node>
+
+    <node type="rviz" name="force_visualize_rviz" pkg="rviz" args="-d $(find multi_modal_force_rendering)/config/visualize.rviz" />
+
+	<!-- <include file="$(find pharos_pkg)/launch/pharos_launch.launch">
+		<arg name="param1" value="$(arg arg1)" />
+	</include> -->
+
+</launch>

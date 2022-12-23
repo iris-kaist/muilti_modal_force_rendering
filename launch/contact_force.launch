@@ -1,0 +1,9 @@
+<launch>
+	<!-- <arg name="arg1" default="0"/> -->
+
+	<node name="contact_force_node" pkg="multi_modal_force_rendering" type="contact_force_node" output="screen">
+		<!-- <param name="param1" value="$(arg arg1)"/> -->
+
+		<!-- <remap from="a" to="b" /> -->
+	</node>
+</launch>

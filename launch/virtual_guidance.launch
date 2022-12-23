@@ -1,0 +1,9 @@
+<launch>
+	<!-- <arg name="arg1" default="0"/> -->
+
+	<node name="virtual_guidance_node" pkg="multi_modal_force_rendering" type="virtual_guidance_node" output="screen">
+		<!-- <param name="param1" value="$(arg arg1)"/> -->
+
+		<!-- <remap from="a" to="b" /> -->
+	</node>
+</launch>

@@ -1,0 +1,23 @@
+<launch>
+	<!-- <arg name="hz" default="1000"/> -->
+	<arg name="fps" default="60"/>
+
+	<node name="force_rendering_node" pkg="multi_modal_force_rendering" type="multi_modal_force_rendering_node" output="screen">
+		<!-- <param name="publish_rate" value="$(arg hz)"/> -->
+
+		<!-- <remap from="a" to="b" /> -->
+	</node>
+
+	<include file="$(find multi_modal_force_rendering)/launch/contact_force.launch">
+		<!-- <arg name="publish_rate" value="$(arg hz)" /> -->
+	</include>
+
+	<include file="$(find multi_modal_force_rendering)/launch/virtual_guidance.launch">
+		<!-- <arg name="publish_rate" value="$(arg hz)" /> -->
+	</include>
+
+	<include file="$(find multi_modal_force_rendering)/launch/visualize.launch">
+		<arg name="publish_rate" value="$(arg fps)" />
+	</include>
+
+</launch>
