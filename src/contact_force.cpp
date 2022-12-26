@@ -10,6 +10,20 @@ ros::Publisher pubWrench_;
 
 geometry_msgs::WrenchStamped wrench_msg_;
 
+double vw_kp_; // virtual wall stiffness
+double vw_kd_; // virtual wall damping
+
+struct virtual_wall{
+	double px;
+	double py;
+	double pz;
+	double kp;
+	double kd;
+};
+
+virtual_wall vw_left_;
+virtual_wall vw_right_;
+
 geometry_msgs::Vector3 ContactForceRendering(const geometry_msgs::Point &pos)
 {
     static geometry_msgs::Vector3 contact_force;
@@ -27,8 +41,21 @@ geometry_msgs::Vector3 ContactForceRendering(const geometry_msgs::Point &pos)
 void CallbackInterfaceState(const phantom_premium_msgs::TeleoperationDeviceStateStamped::ConstPtr& msg)
 {
 	// std::cout<<msg->state.pose.position<<std::endl;
+	geometry_msgs::Pose hip_pose = msg->state.pose;
+	
+	if(hip_pose.position.y > vw_left_.py){
 
+	}
+	else if(hip_pose.position.y < vw_right_.py){
+
+	}
+	else{
+
+	}
+	
     wrench_msg_.wrench.force = ContactForceRendering(msg->state.pose.position);
+
+	
 	
 	pubWrench_.publish(wrench_msg_);
 }

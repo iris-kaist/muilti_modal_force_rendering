@@ -140,7 +140,7 @@ include_directories(
 add_executable(${PROJECT_NAME}_node src/force_rendering.cpp)
 add_executable(contact_force_node src/contact_force.cpp)
 add_executable(virtual_guidance_node src/virtual_guidance.cpp)
-add_executable(force_visualize_node src/force_visualize.cpp)
+add_executable(visualization_node src/visualization_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -154,7 +154,7 @@ add_executable(force_visualize_node src/force_visualize.cpp)
 add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(contact_force_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(virtual_guidance_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-add_dependencies(force_visualize_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(visualization_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(${PROJECT_NAME}_node
@@ -169,7 +169,7 @@ ${catkin_LIBRARIES}
 target_link_libraries(virtual_guidance_node
 ${catkin_LIBRARIES}
 )
-target_link_libraries(force_visualize_node
+target_link_libraries(visualization_node
   ${catkin_LIBRARIES}
 )
 
