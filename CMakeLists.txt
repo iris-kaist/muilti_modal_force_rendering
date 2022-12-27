@@ -16,6 +16,11 @@ find_package(catkin REQUIRED COMPONENTS
   phantom_premium_msgs
 )
 
+set(Eigen3_DIR /usr/local/share/eigen3/cmake)
+find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+add_definitions( ${EIGEN3_DEFINITIONS} )
+message(STATUS "--- EIGEN --- " ${EIGEN3_INCLUDE_DIRS})
+
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -121,6 +126,8 @@ catkin_package(
 include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
+  ${EIGEN3_INCLUDE_DIRS}
+
 )
 
 ## Declare a C++ library
@@ -141,6 +148,7 @@ add_executable(${PROJECT_NAME}_node src/force_rendering.cpp)
 add_executable(contact_force_node src/contact_force.cpp)
 add_executable(virtual_guidance_node src/virtual_guidance.cpp)
 add_executable(visualization_node src/visualization_node.cpp)
+add_executable(master_base_transform_node src/master_base_transform.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -155,6 +163,7 @@ add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catk
 add_dependencies(contact_force_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(virtual_guidance_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(visualization_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(master_base_transform_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(${PROJECT_NAME}_node
@@ -172,7 +181,10 @@ ${catkin_LIBRARIES}
 target_link_libraries(visualization_node
   ${catkin_LIBRARIES}
 )
-
+target_link_libraries(master_base_transform_node
+  ${catkin_LIBRARIES}
+  Eigen3::Eigen
+)
 #############
 ## Install ##
 #############
