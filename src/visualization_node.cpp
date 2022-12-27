@@ -58,7 +58,7 @@ Virtual_Guidance vg_;
 
 void VirtualMarkerInit(visualization_msgs::Marker *virtual_wall)
 {
-	virtual_wall->header.frame_id = "base_link";
+	virtual_wall->header.frame_id = "world";
 	virtual_wall->header.stamp = ros::Time();
 	virtual_wall->ns = "virtual_wall";
 	virtual_wall->id = 0;
@@ -85,7 +85,7 @@ void VirtualMarkerInit(visualization_msgs::Marker *virtual_wall)
 
 void ForceMarkerInit(visualization_msgs::Marker *force)
 {
-	force->header.frame_id = "base_link";
+	force->header.frame_id = "world";
 	force->header.stamp = ros::Time();
 	force->ns = "force_feedback";
 	force->id = 0;
@@ -111,7 +111,7 @@ void ForceMarkerInit(visualization_msgs::Marker *force)
 
 void EEMarkerInit()
 {
-	ee_marker_.header.frame_id = "base_link";
+	ee_marker_.header.frame_id = "world";
 	ee_marker_.header.stamp = ros::Time();
 	ee_marker_.ns = "ee_marker";
 	ee_marker_.id = 0;
@@ -137,7 +137,7 @@ void EEMarkerInit()
 
 void VGMarkerInit()
 {
-	vg_marker_.header.frame_id = "base_link";
+	vg_marker_.header.frame_id = "world";
 	vg_marker_.header.stamp = ros::Time();
 	vg_marker_.ns = "vg_marker";
 	vg_marker_.id = 0;
@@ -177,7 +177,7 @@ void VGMarkerInit()
 
 void VW_LEFT_MarkerInit()
 {
-	vw_left_marker_.header.frame_id = "base_link";
+	vw_left_marker_.header.frame_id = "world";
 	vw_left_marker_.header.stamp = ros::Time();
 	vw_left_marker_.ns = "vw_left_marker";
 	vw_left_marker_.id = 0;
@@ -203,7 +203,7 @@ void VW_LEFT_MarkerInit()
 
 void VW_RIGHT_MarkerInit()
 {
-	vw_right_marker_.header.frame_id = "base_link";
+	vw_right_marker_.header.frame_id = "world";
 	vw_right_marker_.header.stamp = ros::Time();
 	vw_right_marker_.ns = "vw_right_marker";
 	vw_right_marker_.id = 0;
@@ -253,7 +253,7 @@ int main(int argc, char **argv)
 	
 	tf2_ros::TransformBroadcaster br;
 
-    subEEPose_ = nh.subscribe("/ee_pose_stamped", 1, CallbackEEPose); //topic que function
+    subEEPose_ = nh.subscribe("/ee_pose", 1, CallbackEEPose); //topic que function
 
 	pubEEMaker_ = nh.advertise<visualization_msgs::Marker>("ee_marker", 1); //topic que
 	pubVWLeftMaker_ = nh.advertise<visualization_msgs::Marker>("vw_left_marker", 10); //topic que

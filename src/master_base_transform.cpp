@@ -28,15 +28,18 @@ using Eigen::Vector3d;
 
 
 ros::Subscriber subInterfaceState_;
+ros::Subscriber subForceFeedback_;
 
-ros::Publisher pubMasterPoseStamped_; // master device frame
-ros::Publisher pubEEPoseStamped_; // base_link frame
+ros::Publisher pubEEPoseStamped_; // world frame
 
 phantom_premium_msgs::TeleoperationDeviceStateStamped msg_;
 
-geometry_msgs::TransformStamped tf_stamped_;
-phantom_premium_msgs::TeleoperationDeviceStateStamped interface_;
 
+double roll_wp_; // roll angle from world to phantom
+double pitch_wp_; // pitch angle from world to phantom
+double yaw_wp_; // yaw angle from world to phantom
+
+Matrix3d R_pw_; // Rotation Matrix 
 
 int publish_rate_;
 
@@ -48,73 +51,67 @@ Matrix3d rotvec_to_rotmat(const Vector3d &r, double epsilon = 1e-20) {
 }
 
 
-void UpdateTF(tf2_ros::TransformBroadcaster &br)
-{
-	static geometry_msgs::Transform transform;
-
-    transform.translation.x = interface_.state.pose.position.x;
-    transform.translation.y = interface_.state.pose.position.y;
-    transform.translation.z = interface_.state.pose.position.z;
-    transform.rotation.w = 1;
-
-    tf_stamped_.header.stamp = ros::Time::now();
-    tf_stamped_.header.frame_id = "master";
-    tf_stamped_.child_frame_id = "end_effector";
-    tf_stamped_.transform = transform;
-
-    br.sendTransform(tf_stamped_);
-}
-
 void CallbackInterfaceState(const phantom_premium_msgs::TeleoperationDeviceStateStamped::ConstPtr& msg)
 {
-	interface_ = *msg;
-	tf2_ros::TransformBroadcaster br;
-	UpdateTF(br);
 
-	// Transform master pose from 'master' frame to 'base_link' frame
-	geometry_msgs::PoseStamped master_pose_stamped;
-	master_pose_stamped.pose.position.x = msg->state.pose.position.x;
-	master_pose_stamped.pose.position.y = msg->state.pose.position.y;
-	master_pose_stamped.pose.position.z = msg->state.pose.position.z;
-	master_pose_stamped.pose.orientation.w = 1.0;
-	master_pose_stamped.header.stamp = msg->header.stamp;
-	master_pose_stamped.header.frame_id = msg->header.frame_id;
+	Vector3d pm_phantom(msg->state.pose.position.x, msg->state.pose.position.y, msg->state.pose.position.z);
+	Vector3d pm_world;
 
-	pubMasterPoseStamped_.publish(master_pose_stamped);
+	pm_world = R_pw_*pm_phantom;
 
-
-	Vector3d pm_m(msg->state.pose.position.x, msg->state.pose.position.y, msg->state.pose.position.z);
-	Vector3d pm_b;
-
-
-	double roll, pitch, yaw;
-	roll = M_PI/2;
-	pitch = 0.0;
-	yaw = M_PI/2;
-
-	AngleAxisd rollAngle(roll, Eigen::Vector3d::UnitX());
-	AngleAxisd pitchAngle(pitch, Eigen::Vector3d::UnitY());
-	AngleAxisd yawAngle(yaw, Eigen::Vector3d::UnitZ());
-	
-	Quaterniond q =  yawAngle * pitchAngle * rollAngle;
-
-	Matrix3d R_mb = q.matrix();
-
-	pm_b = R_mb*pm_m;
-
-	// cout << "Pmm: " << pm_m(0) << ", "<< pm_m(1) << ", "<< pm_m(2) << endl;
-	// cout << "Pmb: " << pm_b(0) << ", "<< pm_b(1) << ", "<< pm_b(2) << endl;
-
+	// cout << "Pm_phantom: " << pm_phantom(0) << ", "<< pm_phantom(1) << ", "<< pm_phantom(2) << endl;
+	// cout << "Pm___world: " << pm_world(0) << ", "<< pm_world(1) << ", "<< pm_world(2) << endl;
 
 	geometry_msgs::PoseStamped ee_pose_stamped;
-	ee_pose_stamped.header.frame_id = "base_link";
+	ee_pose_stamped.header.frame_id = "world";
 	ee_pose_stamped.header.stamp = msg->header.stamp;
-	ee_pose_stamped.pose.position.x = pm_b(0);
-	ee_pose_stamped.pose.position.y = pm_b(1);
-	ee_pose_stamped.pose.position.z = pm_b(2);
+	ee_pose_stamped.pose.position.x = pm_world(0);
+	ee_pose_stamped.pose.position.y = pm_world(1);
+	ee_pose_stamped.pose.position.z = pm_world(2);
 	ee_pose_stamped.pose.orientation.w = 1.0;
 
 	pubEEPoseStamped_.publish(ee_pose_stamped);
+
+
+	// End-Effector TF BroadCasting
+	
+
+	static tf2_ros::TransformBroadcaster br;
+	geometry_msgs::TransformStamped tf_stamped;
+	geometry_msgs::Transform transform;
+
+    tf_stamped.header.stamp = msg->header.stamp;
+    tf_stamped.header.frame_id = "world";
+    tf_stamped.child_frame_id = "end_effector";
+
+    transform.translation.x = pm_world(0);
+    transform.translation.y = pm_world(1);
+    transform.translation.z = pm_world(2);
+
+	// TODO: Orientation update
+    transform.rotation.x = 0.0;
+	transform.rotation.y = 0.0;
+	transform.rotation.z = 0.0;
+	transform.rotation.w = 1;
+
+    tf_stamped.transform = transform;
+
+    br.sendTransform(tf_stamped);
+
+}
+
+
+void CallbackForceFeedback(const geometry_msgs::WrenchStampedConstPtr &msg){
+
+	Vector3d f_world(msg->wrench.force.x, msg->wrench.force.y, msg->wrench.force.z);
+	Vector3d f_phantom;
+
+	f_phantom = R_pw_.transpose()*f_world;
+
+
+	cout << "Force___World: " << f_world(0) << ", " << f_world(1) << ", " << f_world(2) << endl;
+	cout << "Force_Phantom: " << f_phantom(0) << ", " << f_phantom(1) << ", " << f_phantom(2) << endl;
+
 }
 
 int main(int argc, char **argv)
@@ -125,13 +122,26 @@ int main(int argc, char **argv)
 	ros::NodeHandle pnh("~");
 
 	pnh.param("publish_rate", publish_rate_, 1000);
+
+	pnh.param("Roll_WtoP", roll_wp_, 0.0);
+	pnh.param("Pitch_WtoP", pitch_wp_, 0.0);
+	pnh.param("Yaw_WtoP", yaw_wp_, 0.0);
 	
-	tf2_ros::TransformBroadcaster br;
+	AngleAxisd rollAngle(roll_wp_, Eigen::Vector3d::UnitX());
+	AngleAxisd pitchAngle(pitch_wp_, Eigen::Vector3d::UnitY());
+	AngleAxisd yawAngle(yaw_wp_, Eigen::Vector3d::UnitZ());
+	
+	Quaterniond q =  yawAngle * pitchAngle * rollAngle;
 
-    subInterfaceState_ = nh.subscribe("/master_control/input_master_state", 1, CallbackInterfaceState); //topic que function
+	R_pw_ = q.matrix();
 
-	pubEEPoseStamped_ = nh.advertise<geometry_msgs::PoseStamped>("ee_pose_stamped", 10); 
-	pubMasterPoseStamped_ = nh.advertise<geometry_msgs::PoseStamped>("master_pose_stamped", 10); 
+
+    subInterfaceState_ = nh.subscribe("/master_control/input_master_state", 1, CallbackInterfaceState);
+	subForceFeedback_ = nh.subscribe("/force_feedback", 1, CallbackForceFeedback); 
+
+	pubEEPoseStamped_ = nh.advertise<geometry_msgs::PoseStamped>("ee_pose", 10); 
+
+
 
 	ros::Rate loop_rate(publish_rate_);
 	int count = 0;

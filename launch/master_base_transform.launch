@@ -1,4 +1,12 @@
 <launch>
-	<node pkg="tf" type="static_transform_publisher" name="base_link_to_master" args="0 0 0 1.57079632679 0 1.57079632679 base_link master 100" />
-	<node name="master_base_transform_node" pkg="multi_modal_force_rendering" type="master_base_transform_node" output="screen"/>
+	<arg name="Roll_WtoP" default="1.57079632679" />
+	<arg name="Pitch_WtoP" default="0.0" />
+	<arg name="Yaw_WtoP" default="1.57079632679" />
+
+	<node pkg="tf" type="static_transform_publisher" name="base_link_to_master" args="0 0 0 1.57079632679 0 1.57079632679 world phantom 100" />
+	<node name="master_base_transform_node" pkg="multi_modal_force_rendering" type="master_base_transform_node" output="screen">
+		<param name="Roll_WtoP" value="$(arg Roll_WtoP)"/>
+		<param name="Pitch_WtoP" value="$(arg Pitch_WtoP)"/>
+		<param name="Yaw_WtoP" value="$(arg Yaw_WtoP)"/>
+	</node>
 </launch>

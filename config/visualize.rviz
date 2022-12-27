@@ -5,8 +5,13 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
+        - /virtual_guidance1
+        - /multi_modal1
         - /TF1
         - /TF1/Frames1
+        - /TF1/Tree1
+        - /TF1/Tree1/world1
+        - /EE_Pose1
       Splitter Ratio: 0.6289156675338745
     Tree Height: 795
   - Class: rviz/Views
@@ -37,35 +42,35 @@ Visualization Manager:
       Unreliable: false
       Value: false
     - Alpha: 1
-      Arrow Width: 0.5
+      Arrow Width: 0.20000000298023224
       Class: rviz/WrenchStamped
-      Enabled: false
-      Force Arrow Scale: 2
-      Force Color: 204; 51; 51
-      Hide Small Values: true
+      Enabled: true
+      Force Arrow Scale: 1
+      Force Color: 32; 74; 135
+      Hide Small Values: false
       History Length: 1
       Name: virtual_guidance
       Queue Size: 10
       Topic: /force/virtual_guidance
-      Torque Arrow Scale: 2
+      Torque Arrow Scale: 1
       Torque Color: 204; 204; 51
       Unreliable: false
-      Value: false
-    - Alpha: 1
+      Value: true
+    - Alpha: 0.5
       Arrow Width: 0.5
       Class: rviz/WrenchStamped
-      Enabled: false
-      Force Arrow Scale: 2
+      Enabled: true
+      Force Arrow Scale: 1
       Force Color: 204; 51; 51
-      Hide Small Values: true
+      Hide Small Values: false
       History Length: 1
       Name: multi_modal
       Queue Size: 10
-      Topic: /force/multi_modal
-      Torque Arrow Scale: 2
+      Topic: /force_feedback
+      Torque Arrow Scale: 1
       Torque Color: 204; 204; 51
       Unreliable: false
-      Value: false
+      Value: true
     - Alpha: 0.5
       Cell Size: 1
       Class: rviz/Grid
@@ -89,12 +94,12 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        base_link:
-          Value: true
         end_effector:
           Value: true
-        master:
+        phantom:
           Value: false
+        world:
+          Value: true
       Marker Alpha: 1
       Marker Scale: 1
       Name: TF
@@ -102,10 +107,11 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
-        base_link:
-          master:
-            end_effector:
-              {}
+        world:
+          end_effector:
+            {}
+          phantom:
+            {}
       Update Interval: 0
       Value: true
     - Class: rviz/Marker
@@ -148,35 +154,19 @@ Visualization Manager:
       Enabled: false
       Head Length: 0.30000001192092896
       Head Radius: 0.10000000149011612
-      Name: Master_Pose
-      Queue Size: 10
-      Shaft Length: 1
-      Shaft Radius: 0.05000000074505806
-      Shape: Arrow
-      Topic: /master_pose_stamped
-      Unreliable: false
-      Value: false
-    - Alpha: 1
-      Axes Length: 1
-      Axes Radius: 0.10000000149011612
-      Class: rviz/Pose
-      Color: 255; 25; 0
-      Enabled: false
-      Head Length: 0.30000001192092896
-      Head Radius: 0.10000000149011612
       Name: EE_Pose
       Queue Size: 10
       Shaft Length: 1
       Shaft Radius: 0.05000000074505806
       Shape: Arrow
-      Topic: /ee_pose_stamped
+      Topic: /ee_pose
       Unreliable: false
       Value: false
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: base_link
+    Fixed Frame: world
     Frame Rate: 30
   Name: root
   Tools:
@@ -186,7 +176,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.5127736330032349
+      Distance: 2.737072467803955
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -202,9 +192,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.6047962307929993
+      Pitch: 0.9547964930534363
       Target Frame: base
-      Yaw: 0.1654142290353775
+      Yaw: 0.17042149603366852
     Saved: ~
 Window Geometry:
   Displays:

@@ -6,16 +6,13 @@
 	<rosparam command="load" file="$(find multi_modal_force_rendering)/config/virtual_wall.yaml" />
 	<rosparam command="load" file="$(find multi_modal_force_rendering)/config/virtual_guidance.yaml" />
 
-	<!-- <node name="force_rendering_node" pkg="multi_modal_force_rendering" type="multi_modal_force_rendering_node" output="screen"> -->
-		<!-- <param name="publish_rate" value="$(arg hz)"/> -->
+	<node name="force_rendering_node" pkg="multi_modal_force_rendering" type="multi_modal_force_rendering_node" output="screen"/>
+	
 
-		<!-- <remap from="a" to="b" /> -->
-	<!-- </node> -->
 	<include file="$(find multi_modal_force_rendering)/launch/master_base_transform.launch"/>
 	<!-- <include file="$(find multi_modal_force_rendering)/launch/contact_force.launch"/> -->
-	<!-- <include file="$(find multi_modal_force_rendering)/launch/virtual_guidance.launch"/> -->
+	<include file="$(find multi_modal_force_rendering)/launch/virtual_guidance.launch"/>
 	<include file="$(find multi_modal_force_rendering)/launch/visualize.launch">
-	
 		<arg name="publish_rate" value="$(arg fps)" />
 		<arg name="virtual_wall_width" value="$(arg virtual_wall_width)" />
 	</include>
