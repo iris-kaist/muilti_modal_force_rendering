@@ -31,9 +31,9 @@ ros::Subscriber subInterfaceState_;
 ros::Subscriber subForceFeedback_;
 
 ros::Publisher pubEEPoseStamped_; // world frame
+ros::Publisher pubForceFeedback_;
 
-phantom_premium_msgs::TeleoperationDeviceStateStamped msg_;
-
+phantom_premium_msgs::TeleoperationDeviceStateStamped send_to_phantom_;
 
 double roll_wp_; // roll angle from world to phantom
 double pitch_wp_; // pitch angle from world to phantom
@@ -43,17 +43,11 @@ Matrix3d R_pw_; // Rotation Matrix
 
 int publish_rate_;
 
-Matrix3d rotvec_to_rotmat(const Vector3d &r, double epsilon = 1e-20) {
-  AngleAxisd aa;
-  aa.axis() = r.normalized();
-  aa.angle() = r.norm();
-  return aa.toRotationMatrix();
-}
-
-
 void CallbackInterfaceState(const phantom_premium_msgs::TeleoperationDeviceStateStamped::ConstPtr& msg)
 {
+	send_to_phantom_.header.frame_id = msg->header.frame_id;
 
+	// Coordinate Transform 
 	Vector3d pm_phantom(msg->state.pose.position.x, msg->state.pose.position.y, msg->state.pose.position.z);
 	Vector3d pm_world;
 
@@ -74,7 +68,6 @@ void CallbackInterfaceState(const phantom_premium_msgs::TeleoperationDeviceState
 
 
 	// End-Effector TF BroadCasting
-	
 
 	static tf2_ros::TransformBroadcaster br;
 	geometry_msgs::TransformStamped tf_stamped;
@@ -103,15 +96,21 @@ void CallbackInterfaceState(const phantom_premium_msgs::TeleoperationDeviceState
 
 void CallbackForceFeedback(const geometry_msgs::WrenchStampedConstPtr &msg){
 
+	// Coordinate Transform
 	Vector3d f_world(msg->wrench.force.x, msg->wrench.force.y, msg->wrench.force.z);
 	Vector3d f_phantom;
 
 	f_phantom = R_pw_.transpose()*f_world;
 
+	// cout << "Force___World: " << f_world(0) << ", " << f_world(1) << ", " << f_world(2) << endl;
+	// cout << "Force_Phantom: " << f_phantom(0) << ", " << f_phantom(1) << ", " << f_phantom(2) << endl;
 
-	cout << "Force___World: " << f_world(0) << ", " << f_world(1) << ", " << f_world(2) << endl;
-	cout << "Force_Phantom: " << f_phantom(0) << ", " << f_phantom(1) << ", " << f_phantom(2) << endl;
+	send_to_phantom_.state.wrench.force.x = f_phantom(0);
+	send_to_phantom_.state.wrench.force.y = f_phantom(1);
+	send_to_phantom_.state.wrench.force.z = f_phantom(2);
+	send_to_phantom_.header.stamp = msg->header.stamp;
 
+	pubForceFeedback_.publish(send_to_phantom_);
 }
 
 int main(int argc, char **argv)
@@ -123,6 +122,7 @@ int main(int argc, char **argv)
 
 	pnh.param("publish_rate", publish_rate_, 1000);
 
+	// Get Rotation ('world' frame to 'master'(phantom) frame)
 	pnh.param("Roll_WtoP", roll_wp_, 0.0);
 	pnh.param("Pitch_WtoP", pitch_wp_, 0.0);
 	pnh.param("Yaw_WtoP", yaw_wp_, 0.0);
@@ -136,11 +136,12 @@ int main(int argc, char **argv)
 	R_pw_ = q.matrix();
 
 
+
     subInterfaceState_ = nh.subscribe("/master_control/input_master_state", 1, CallbackInterfaceState);
 	subForceFeedback_ = nh.subscribe("/force_feedback", 1, CallbackForceFeedback); 
 
 	pubEEPoseStamped_ = nh.advertise<geometry_msgs::PoseStamped>("ee_pose", 10); 
-
+	pubForceFeedback_ = nh.advertise<phantom_premium_msgs::TeleoperationDeviceStateStamped>("/master_control/output_slave_state", 10); 
 
 
 	ros::Rate loop_rate(publish_rate_);
