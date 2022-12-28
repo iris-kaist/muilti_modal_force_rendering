@@ -3,15 +3,15 @@ virtual_wall:
   left:
     position:
       x: 0.0
-      y: -0.2 # [m]
+      y: -0.15 # [m]
       z: 0.0
-    stiffness: 10 # N/mm
+    stiffness: 300 # N/m
     damping: 0
 
   right:
     position:
       x: 0.0
-      y: 0.2  # [m]
+      y: 0.15  # [m]
       z: 0.0
-    stiffness: 10 # N/mm
+    stiffness: 500 # N/m
     damping: 0

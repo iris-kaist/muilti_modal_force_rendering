@@ -10,8 +10,8 @@
 	
 
 	<include file="$(find multi_modal_force_rendering)/launch/master_base_transform.launch"/>
-	<!-- <include file="$(find multi_modal_force_rendering)/launch/contact_force.launch"/> -->
-	<include file="$(find multi_modal_force_rendering)/launch/virtual_guidance.launch"/>
+	<include file="$(find multi_modal_force_rendering)/launch/contact_force.launch"/>
+	<!-- <include file="$(find multi_modal_force_rendering)/launch/virtual_guidance.launch"/> -->
 	<include file="$(find multi_modal_force_rendering)/launch/visualize.launch">
 		<arg name="publish_rate" value="$(arg fps)" />
 		<arg name="virtual_wall_width" value="$(arg virtual_wall_width)" />

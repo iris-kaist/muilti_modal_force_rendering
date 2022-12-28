@@ -1,7 +1,4 @@
-// Todo
 // Virtual guidance generation
-// single axis
-// attraction force
 
 #include <ros/ros.h>
 #include <geometry_msgs/Vector3.h>
@@ -49,7 +46,6 @@ int main(int argc, char **argv)
 
 	ros::NodeHandle nh;
 	ros::NodeHandle pnh("~");
-
 
     pnh.getParam("/virtual_guidance/position/x",vg_.px);
 	pnh.getParam("/virtual_guidance/position/y",vg_.py);
