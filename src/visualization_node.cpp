@@ -34,6 +34,9 @@ geometry_msgs::PoseStamped ee_pose_stamed_;
 
 double vw_width_= 0.0;
 
+double peg_rad_ = 0.0;
+double peg_length_ = 0.0;
+
 int publish_rate_;
 
 struct Virtual_Wall{
@@ -115,7 +118,7 @@ void EEMarkerInit()
 	ee_marker_.header.stamp = ros::Time();
 	ee_marker_.ns = "ee_marker";
 	ee_marker_.id = 0;
-	ee_marker_.type = visualization_msgs::Marker::SPHERE;
+	ee_marker_.type = visualization_msgs::Marker::CYLINDER;
 	ee_marker_.action = visualization_msgs::Marker::ADD;
 	ee_marker_.pose.position.x = 0;
 	ee_marker_.pose.position.y = 0;
@@ -124,9 +127,9 @@ void EEMarkerInit()
 	ee_marker_.pose.orientation.y = 0.0;
 	ee_marker_.pose.orientation.z = 0.0;
 	ee_marker_.pose.orientation.w = 1.0;
-	ee_marker_.scale.x = 0.05;
-	ee_marker_.scale.y = 0.05;
-	ee_marker_.scale.z = 0.05;
+	ee_marker_.scale.x = 2.0*peg_rad_;
+	ee_marker_.scale.y = 2.0*peg_rad_;
+	ee_marker_.scale.z = peg_length_;
 	ee_marker_.color.a = 1.0; // Don't forget to set the alpha!
 	ee_marker_.color.r = 0.0;
 	ee_marker_.color.g = 1.0;
@@ -163,11 +166,11 @@ void VGMarkerInit()
 	geometry_msgs::Point p1, p2;
 	p1.x = vg_.px;
 	p1.y = vg_.py;
-	p1.z = vg_.pz - 0.5;
+	p1.z = vg_.pz - 1.0;
 
 	p2.x = vg_.px;
 	p2.y = vg_.py;
-	p2.z = vg_.pz + 0.5;
+	p2.z = vg_.pz + 1.0;
 
 	vg_marker_.points.push_back(p1);
 	vg_marker_.points.push_back(p2);
@@ -279,7 +282,12 @@ int main(int argc, char **argv)
 	pnh.getParam("/virtual_wall/right/stiffness",vw_right_.kp);
 	pnh.getParam("/virtual_wall/right/damping",vw_right_.kd);
 
-	pnh.param("virtual_wall_width",vw_width_,0.02);
+	pnh.getParam("/peg/dimension/length", peg_length_);
+	pnh.getParam("/peg/dimension/radius", peg_rad_);
+
+
+
+	pnh.param("virtual_wall_width",vw_width_,0.5);
 
 	EEMarkerInit();
 	VGMarkerInit();

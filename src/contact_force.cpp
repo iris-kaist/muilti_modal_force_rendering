@@ -12,6 +12,9 @@ ros::Publisher pubWrench_;
 
 geometry_msgs::WrenchStamped wrench_msg_;
 
+double peg_rad_ = 0.0;
+double peg_length_ = 0.0;
+
 struct virtual_wall{
 	double px = 0.0;
 	double py = 0.0;
@@ -31,17 +34,20 @@ geometry_msgs::Vector3 ContactForceRendering(const geometry_msgs::Point &pos)
     contact_force.x = 0.0;
     contact_force.z = 0.0;
 
-	if(pos.y > vw_right_.py){
-		contact_force.y = vw_right_.kp * (vw_right_.py - pos.y);
-		cout <<"Contact Force [Right VW]: " <<  contact_force.y << endl;
+	double contact_point_right = vw_right_.py - peg_rad_;
+	double contact_point_left = vw_left_.py + peg_rad_;
+
+	if(pos.y > contact_point_right){
+		contact_force.y = vw_right_.kp * (contact_point_right - pos.y);
+		// cout <<"Contact Force [Right VW]: " <<  contact_force.y << endl;
 	}
-	else if(pos.y < vw_left_.py){
-		contact_force.y = vw_left_.kp * (vw_left_.py - pos.y);
-		cout <<"Contact Force [Left VW]: " <<  contact_force.y << endl;
+	else if(pos.y < contact_point_left){
+		contact_force.y = vw_left_.kp * (contact_point_left - pos.y);
+		// cout <<"Contact Force [Left VW]: " <<  contact_force.y << endl;
 	}
 	else{
 		contact_force.y = 0.0;
-		cout <<"Contact Force [No Contact]: " <<  contact_force.y << endl;
+		// cout <<"Contact Force [No Contact]: " <<  contact_force.y << endl;
 	}
 
 	
@@ -77,6 +83,8 @@ int main(int argc, char **argv)
 	pnh.getParam("/virtual_wall/right/stiffness",vw_right_.kp);
 	pnh.getParam("/virtual_wall/right/damping",vw_right_.kd);
 
+	pnh.getParam("/peg/dimension/length", peg_length_);
+	pnh.getParam("/peg/dimension/radius", peg_rad_);
 
 	subEEPose_ = nh.subscribe("/ee_pose", 1, CallbackEEPose); //topic que function
 	pubWrench_ = nh.advertise<geometry_msgs::WrenchStamped>("/force/contact", 1); //topic que

@@ -1,17 +1,18 @@
 <launch>
 	<!-- <arg name="hz" default="1000"/> -->
 	<arg name="fps" default="60"/>
-	<arg name="virtual_wall_width" default="0.02" />
+	<arg name="virtual_wall_width" default="0.5" />
 
 	<rosparam command="load" file="$(find multi_modal_force_rendering)/config/virtual_wall.yaml" />
 	<rosparam command="load" file="$(find multi_modal_force_rendering)/config/virtual_guidance.yaml" />
+	<rosparam command="load" file="$(find multi_modal_force_rendering)/config/peg.yaml" />
 
 	<node name="force_rendering_node" pkg="multi_modal_force_rendering" type="multi_modal_force_rendering_node" output="screen"/>
 	
 
 	<include file="$(find multi_modal_force_rendering)/launch/master_base_transform.launch"/>
 	<include file="$(find multi_modal_force_rendering)/launch/contact_force.launch"/>
-	<!-- <include file="$(find multi_modal_force_rendering)/launch/virtual_guidance.launch"/> -->
+	<include file="$(find multi_modal_force_rendering)/launch/virtual_guidance.launch"/>
 	<include file="$(find multi_modal_force_rendering)/launch/visualize.launch">
 		<arg name="publish_rate" value="$(arg fps)" />
 		<arg name="virtual_wall_width" value="$(arg virtual_wall_width)" />

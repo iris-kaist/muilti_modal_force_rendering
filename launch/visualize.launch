@@ -1,6 +1,6 @@
 <launch>
 	<arg name="publish_rate" default="60"/>
-	<arg name="virtual_wall_width" default="0.05"/>
+	<arg name="virtual_wall_width" default="0.5"/>
 
 	<node name="visualization_node" pkg="multi_modal_force_rendering" type="visualization_node" output="screen">
 		<param name="publish_rate" value="$(arg publish_rate)"/>

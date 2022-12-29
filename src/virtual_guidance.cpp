@@ -10,6 +10,7 @@ ros::Publisher pubWrench_;
 
 geometry_msgs::WrenchStamped wrench_msg_;
 
+
 struct Virtual_Guidance{
 	double px = 0.0;
 	double py = 0.0;
@@ -52,7 +53,6 @@ int main(int argc, char **argv)
 	pnh.getParam("/virtual_guidance/position/z",vg_.pz);
 	pnh.getParam("/virtual_guidance/stiffness",vg_.kp);
 	pnh.getParam("/virtual_guidance/damping",vg_.kd);
-
 
 
 	subEEPose_ = nh.subscribe("/ee_pose", 1, CallbackEEPose); //topic que function
