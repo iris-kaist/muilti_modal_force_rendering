@@ -1,5 +1,5 @@
 #Peg
 peg:
   dimension:
-    length: 0.5 #[m]
+    height: 0.5 #[m]
     radius: 0.13 #[m]

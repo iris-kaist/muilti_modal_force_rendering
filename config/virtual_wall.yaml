@@ -1,17 +1,25 @@
 #Virtual Wall
 virtual_wall:
   left:
+    dimension:
+      length: 1.0
+      width: 0.5
+      height: 1.0
     position:
       x: 0.0
       y: -0.15 # [m]
-      z: -0.3
-    stiffness: 1000 # N/m
+      z: -0.6
+    stiffness: 3000 # N/m
     damping: 0
 
   right:
+    dimension:
+      length: 1.0
+      width: 0.5
+      height: 1.0
     position:
       x: 0.0
       y: 0.15  # [m]
-      z: -0.3
-    stiffness: 1000 # N/m
+      z: -0.6
+    stiffness: 3000 # N/m
     damping: 0

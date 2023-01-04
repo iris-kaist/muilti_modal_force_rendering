@@ -35,14 +35,14 @@ geometry_msgs::PoseStamped ee_pose_stamed_;
 double vw_width_= 0.0;
 
 double peg_rad_ = 0.0;
-double peg_length_ = 0.0;
+double peg_height_ = 0.0;
 
 int publish_rate_;
 
+
 struct Virtual_Wall{
-	double px = 0.0;
-	double py = 0.0;
-	double pz = 0.0;
+	geometry_msgs::Point p;
+	geometry_msgs::Point dim;
 	double kp = 0.0;
 	double kd = 0.0;
 };
@@ -51,66 +51,12 @@ Virtual_Wall vw_right_;
 
 
 struct Virtual_Guidance{
-	double px = 0.0;
-	double py = 0.0;
-	double pz = 0.0;
+	geometry_msgs::Point p;
 	double kp = 0.0;
 	double kd = 0.0;
 };
 Virtual_Guidance vg_;
 
-void VirtualMarkerInit(visualization_msgs::Marker *virtual_wall)
-{
-	virtual_wall->header.frame_id = "world";
-	virtual_wall->header.stamp = ros::Time();
-	virtual_wall->ns = "virtual_wall";
-	virtual_wall->id = 0;
-	virtual_wall->type = visualization_msgs::Marker::CUBE;
-	virtual_wall->action = visualization_msgs::Marker::ADD;
-	virtual_wall->pose.position.x = 0;
-	virtual_wall->pose.position.y = 0;
-	virtual_wall->pose.position.z = 0;
-	virtual_wall->pose.orientation.x = 0.0;
-	virtual_wall->pose.orientation.y = 0.0;
-	virtual_wall->pose.orientation.z = 0.0;
-	virtual_wall->pose.orientation.w = 1.0;
-	virtual_wall->scale.x = 0.1;
-	virtual_wall->scale.y = 0.1;
-	virtual_wall->scale.z = 0.1;
-	virtual_wall->color.a = 1.0; // Don't forget to set the alpha!
-	virtual_wall->color.r = 1.0;
-	virtual_wall->color.g = 0.0;
-	virtual_wall->color.b = 0.0;
-	//only if using a MESH_RESOURCE marker type:
-	// marker_mesh_resource = "package://pr2_description/meshes/base_v0/base.dae";
-}
-
-
-void ForceMarkerInit(visualization_msgs::Marker *force)
-{
-	force->header.frame_id = "world";
-	force->header.stamp = ros::Time();
-	force->ns = "force_feedback";
-	force->id = 0;
-	force->type = visualization_msgs::Marker::CUBE;
-	force->action = visualization_msgs::Marker::ADD;
-	force->pose.position.x = 0;
-	force->pose.position.y = 0;
-	force->pose.position.z = 0;
-	force->pose.orientation.x = 0.0;
-	force->pose.orientation.y = 0.0;
-	force->pose.orientation.z = 0.0;
-	force->pose.orientation.w = 1.0;
-	force->scale.x = 0.1;
-	force->scale.y = 0.1;
-	force->scale.z = 0.1;
-	force->color.a = 1.0; // Don't forget to set the alpha!
-	force->color.r = 1.0;
-	force->color.g = 0.0;
-	force->color.b = 0.0;
-	//only if using a MESH_RESOURCE marker type:
-	// marker_mesh_resource = "package://pr2_description/meshes/base_v0/base.dae";
-}
 
 void EEMarkerInit()
 {
@@ -129,7 +75,7 @@ void EEMarkerInit()
 	ee_marker_.pose.orientation.w = 1.0;
 	ee_marker_.scale.x = 2.0*peg_rad_;
 	ee_marker_.scale.y = 2.0*peg_rad_;
-	ee_marker_.scale.z = peg_length_;
+	ee_marker_.scale.z = peg_height_;
 	ee_marker_.color.a = 1.0; // Don't forget to set the alpha!
 	ee_marker_.color.r = 0.0;
 	ee_marker_.color.g = 1.0;
@@ -164,13 +110,13 @@ void VGMarkerInit()
 	// marker_mesh_resource = "package://pr2_description/meshes/base_v0/base.dae";
 
 	geometry_msgs::Point p1, p2;
-	p1.x = vg_.px;
-	p1.y = vg_.py;
-	p1.z = vg_.pz - 1.0;
+	p1.x = vg_.p.x;
+	p1.y = vg_.p.y;
+	p1.z = vg_.p.z - 1.0;
 
-	p2.x = vg_.px;
-	p2.y = vg_.py;
-	p2.z = vg_.pz + 1.0;
+	p2.x = vg_.p.x;
+	p2.y = vg_.p.y;
+	p2.z = vg_.p.z + 1.0;
 
 	vg_marker_.points.push_back(p1);
 	vg_marker_.points.push_back(p2);
@@ -186,16 +132,16 @@ void VW_LEFT_MarkerInit()
 	vw_left_marker_.id = 0;
 	vw_left_marker_.type = visualization_msgs::Marker::CUBE;
 	vw_left_marker_.action = visualization_msgs::Marker::ADD;
-	vw_left_marker_.pose.position.x = vw_left_.px;
-	vw_left_marker_.pose.position.y = vw_left_.py - vw_width_*0.5;
-	vw_left_marker_.pose.position.z = vw_left_.pz;
+	vw_left_marker_.pose.position.x = vw_left_.p.x;
+	vw_left_marker_.pose.position.y = vw_left_.p.y - vw_left_.dim.y*0.5;
+	vw_left_marker_.pose.position.z = vw_left_.p.z;
 	vw_left_marker_.pose.orientation.x = 0.0;
 	vw_left_marker_.pose.orientation.y = 0.0;
 	vw_left_marker_.pose.orientation.z = 0.0;
 	vw_left_marker_.pose.orientation.w = 1.0;
-	vw_left_marker_.scale.x = 1.0;
-	vw_left_marker_.scale.y = vw_width_;
-	vw_left_marker_.scale.z = 1.0;
+	vw_left_marker_.scale.x = vw_left_.dim.x; 
+	vw_left_marker_.scale.y = vw_left_.dim.y;
+	vw_left_marker_.scale.z = vw_left_.dim.z;
 	vw_left_marker_.color.a = 0.5; // Don't forget to set the alpha!
 	vw_left_marker_.color.r = 0.8;
 	vw_left_marker_.color.g = 0.8;
@@ -212,16 +158,16 @@ void VW_RIGHT_MarkerInit()
 	vw_right_marker_.id = 0;
 	vw_right_marker_.type = visualization_msgs::Marker::CUBE;
 	vw_right_marker_.action = visualization_msgs::Marker::ADD;
-	vw_right_marker_.pose.position.x = vw_right_.px;
-	vw_right_marker_.pose.position.y = vw_right_.py + vw_width_*0.5;
-	vw_right_marker_.pose.position.z = vw_right_.pz;
+	vw_right_marker_.pose.position.x = vw_right_.p.x;
+	vw_right_marker_.pose.position.y = vw_right_.p.y + vw_right_.dim.y*0.5;
+	vw_right_marker_.pose.position.z = vw_right_.p.z;
 	vw_right_marker_.pose.orientation.x = 0.0;
 	vw_right_marker_.pose.orientation.y = 0.0;
 	vw_right_marker_.pose.orientation.z = 0.0;
 	vw_right_marker_.pose.orientation.w = 1.0;
-	vw_right_marker_.scale.x = 1.0;
-	vw_right_marker_.scale.y = vw_width_;
-	vw_right_marker_.scale.z = 1.0;
+	vw_right_marker_.scale.x = vw_right_.dim.x;
+	vw_right_marker_.scale.y = vw_right_.dim.y;
+	vw_right_marker_.scale.z = vw_right_.dim.z;
 	vw_right_marker_.color.a = 0.5; // Don't forget to set the alpha!
 	vw_right_marker_.color.r = 0.8;
 	vw_right_marker_.color.g = 0.8;
@@ -264,30 +210,34 @@ int main(int argc, char **argv)
 
 	pubVGMaker_ = nh.advertise<visualization_msgs::Marker>("vg_marker", 10); //topic que
 
-    pnh.getParam("/virtual_guidance/position/x",vg_.px);
-	pnh.getParam("/virtual_guidance/position/y",vg_.py);
-	pnh.getParam("/virtual_guidance/position/z",vg_.pz);
+    pnh.getParam("/virtual_guidance/position/x",vg_.p.x);
+	pnh.getParam("/virtual_guidance/position/y",vg_.p.y);
+	pnh.getParam("/virtual_guidance/position/z",vg_.p.z);
 	pnh.getParam("/virtual_guidance/stiffness",vg_.kp);
 	pnh.getParam("/virtual_guidance/damping",vg_.kd);
 
-	pnh.getParam("/virtual_wall/left/position/x",vw_left_.px);
-	pnh.getParam("/virtual_wall/left/position/y",vw_left_.py);
-	pnh.getParam("/virtual_wall/left/position/z",vw_left_.pz);
+	pnh.getParam("/virtual_wall/left/position/x",vw_left_.p.x);
+	pnh.getParam("/virtual_wall/left/position/y",vw_left_.p.y);
+	pnh.getParam("/virtual_wall/left/position/z",vw_left_.p.z);
 	pnh.getParam("/virtual_wall/left/stiffness",vw_left_.kp);
 	pnh.getParam("/virtual_wall/left/damping",vw_left_.kd);
+	pnh.getParam("/virtual_wall/left/dimension/length",vw_left_.dim.x);
+	pnh.getParam("/virtual_wall/left/dimension/width",vw_left_.dim.y);
+	pnh.getParam("/virtual_wall/left/dimension/height",vw_left_.dim.z);
 
-	pnh.getParam("/virtual_wall/right/position/x",vw_right_.px);
-	pnh.getParam("/virtual_wall/right/position/y",vw_right_.py);
-	pnh.getParam("/virtual_wall/right/position/z",vw_right_.pz);
+	pnh.getParam("/virtual_wall/right/position/x",vw_right_.p.x);
+	pnh.getParam("/virtual_wall/right/position/y",vw_right_.p.y);
+	pnh.getParam("/virtual_wall/right/position/z",vw_right_.p.z);
 	pnh.getParam("/virtual_wall/right/stiffness",vw_right_.kp);
 	pnh.getParam("/virtual_wall/right/damping",vw_right_.kd);
+	pnh.getParam("/virtual_wall/right/dimension/length",vw_right_.dim.x);
+	pnh.getParam("/virtual_wall/right/dimension/width",vw_right_.dim.y);
+	pnh.getParam("/virtual_wall/right/dimension/height",vw_right_.dim.z);
 
-	pnh.getParam("/peg/dimension/length", peg_length_);
+	pnh.getParam("/peg/dimension/height", peg_height_);
 	pnh.getParam("/peg/dimension/radius", peg_rad_);
 
 
-
-	pnh.param("virtual_wall_width",vw_width_,0.5);
 
 	EEMarkerInit();
 	VGMarkerInit();

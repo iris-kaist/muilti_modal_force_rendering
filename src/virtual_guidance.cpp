@@ -10,6 +10,7 @@ ros::Publisher pubWrench_;
 
 geometry_msgs::WrenchStamped wrench_msg_;
 
+double max_force_ = 1.0; // [N]
 
 struct Virtual_Guidance{
 	double px = 0.0;
@@ -25,17 +26,37 @@ geometry_msgs::Vector3 VirtualGuidanceForceRendering(const geometry_msgs::Point 
     static geometry_msgs::Vector3 vg_force;
 
     vg_force.x = 0.0;
-    vg_force.y = -1.0 * vg_.kp * (pos.y - vg_.py);
+    vg_force.y = -0.5 * vg_.kp * (pos.y - vg_.py);
     vg_force.z = 0.0;
 
     return vg_force;
+}
+
+geometry_msgs::Vector3 ForceConstraint(const geometry_msgs::Vector3& force){
+	static geometry_msgs::Vector3 constrained_force;
+
+	if(force.x > max_force_) constrained_force.x = max_force_;
+	else if(force.x <-max_force_) constrained_force.x =-max_force_;
+	else constrained_force.x = force.x;
+
+	if(force.y > max_force_) constrained_force.y = max_force_;
+	else if(force.y <-max_force_) constrained_force.y =-max_force_;
+	else constrained_force.y = force.y;
+
+	if(force.z > max_force_) constrained_force.z = max_force_;
+	else if(force.z <-max_force_) constrained_force.z =-max_force_;
+	else constrained_force.z = force.z;
+
+	return constrained_force;
 }
 
 void CallbackEEPose(const geometry_msgs::PoseStampedConstPtr& msg)
 {
 	// std::cout<<msg->state.pose.position<<std::endl;
 
-    wrench_msg_.wrench.force = VirtualGuidanceForceRendering(msg->pose.position);
+	static geometry_msgs::Vector3 guidance_force;
+    guidance_force = VirtualGuidanceForceRendering(msg->pose.position);
+	wrench_msg_.wrench.force = ForceConstraint(guidance_force);
 	
 	wrench_msg_.header.stamp = msg->header.stamp;
 	pubWrench_.publish(wrench_msg_);
@@ -43,7 +64,7 @@ void CallbackEEPose(const geometry_msgs::PoseStampedConstPtr& msg)
 
 int main(int argc, char **argv)
 {
-	ros::init(argc, argv, "contact_force_rendering_node");
+	ros::init(argc, argv, "guidance_force_rendering_node");
 
 	ros::NodeHandle nh;
 	ros::NodeHandle pnh("~");
@@ -54,6 +75,7 @@ int main(int argc, char **argv)
 	pnh.getParam("/virtual_guidance/stiffness",vg_.kp);
 	pnh.getParam("/virtual_guidance/damping",vg_.kd);
 
+	pnh.getParam("max_force", max_force_);
 
 	subEEPose_ = nh.subscribe("/ee_pose", 1, CallbackEEPose); //topic que function
 	pubWrench_ = nh.advertise<geometry_msgs::WrenchStamped>("/force/virtual_guidance", 1); //topic que
