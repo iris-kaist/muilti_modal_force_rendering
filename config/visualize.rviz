@@ -7,6 +7,7 @@ Panels:
         - /Global Options1
         - /TF1/Frames1
         - /TF1/Tree1
+        - /Friction Proxy1
       Splitter Ratio: 0.6289156675338745
     Tree Height: 822
   - Class: rviz/Views
@@ -147,6 +148,17 @@ Visualization Manager:
       Topic: /ee_pose
       Unreliable: false
       Value: false
+    - Alpha: 1
+      Class: rviz/PointStamped
+      Color: 204; 41; 204
+      Enabled: true
+      History Length: 1
+      Name: Friction Proxy
+      Queue Size: 10
+      Radius: 0.05000000074505806
+      Topic: /proxy/friction
+      Unreliable: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -177,7 +189,7 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.01979677379131317
+      Pitch: -0.010203225538134575
       Target Frame: base
       Yaw: 0.02542581409215927
     Saved: ~

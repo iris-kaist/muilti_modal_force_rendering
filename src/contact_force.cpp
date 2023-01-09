@@ -1,23 +1,31 @@
 // Contact force Virtual Wall
 
+#include <math.h>
 #include <ros/ros.h>
 #include <geometry_msgs/Vector3.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/PointStamped.h>
 #include <geometry_msgs/WrenchStamped.h>
 
 using namespace std;
 
 ros::Subscriber subEEPose_;
 ros::Publisher pubWrench_;
+ros::Publisher pubProxyPoint_;
 
 geometry_msgs::WrenchStamped wrench_msg_;
 geometry_msgs::PoseStamped peg_pose_;
 geometry_msgs::Pose hip_pose_;
 
+geometry_msgs::PointStamped proxy_point_msg_;
+
 double peg_rad_ = 0.0;
 double peg_height_ = 0.0;
 
-double max_force_ = 1.0; // [N]
+double max_force_ = 10.0; // [N]
+
+double static_mu_ = 0.75; // [Friction Coeff.]
+double kinetic_mu_ = 0.5; // [Friction Coeff.]
 
 enum ContactType{
 	NO_CONTACT,// assigned 0
@@ -40,9 +48,6 @@ enum PositionType{
 	IN_SIDE
 };
 
-
-
-int contact_state_[3] = {0,0,0}; // 0: No contact, 1: contact to the positive direction, -1: contact to the negative direction
 
 struct Virtual_Wall{
 	geometry_msgs::Point p;
@@ -115,8 +120,8 @@ geometry_msgs::Vector3 ContactForceRendering(const geometry_msgs::Point &pos)
 
 	double contact_point_up = vw_right_.p.z + 0.5*vw_right_.dim.z + 0.5*peg_height_;
 	
-	// static int left_contact_state_prev = left_contact_state_;
-	// static int right_contact_state_prev = right_contact_state_;
+	static int left_contact_state_prev = left_contact_state_;
+	static int right_contact_state_prev = right_contact_state_;
 	
 	static int left_position_state_prev = left_position_state_;
 	static int right_position_state_prev = right_position_state_;
@@ -224,6 +229,9 @@ geometry_msgs::Vector3 ContactForceRendering(const geometry_msgs::Point &pos)
 	contact_force_left.y = 0.0;
 	contact_force_left.z = 0.0;
 
+	static geometry_msgs::Point friction_proxy;
+	static geometry_msgs::Vector3 friction_force;
+
 	switch(left_contact_state_)
 	{
 		case ContactType::LEFT:
@@ -232,6 +240,7 @@ geometry_msgs::Vector3 ContactForceRendering(const geometry_msgs::Point &pos)
 		
 		case ContactType::DOWN:
 			contact_force_left.z = vw_left_.kp * (contact_point_up - pos.z);
+			break;
 	}
 
 	switch(right_contact_state_)
@@ -242,7 +251,37 @@ geometry_msgs::Vector3 ContactForceRendering(const geometry_msgs::Point &pos)
 		
 		case ContactType::DOWN:
 			contact_force_right.z = vw_right_.kp * (contact_point_up - pos.z);
+			
+			//friction rendering
+			if(right_contact_state_prev != right_contact_state_){ //friction proxy init
+				friction_proxy.x = pos.x;
+				friction_proxy.y = pos.y;
+				friction_proxy.z = contact_point_up - peg_height_/2.;
+			}
+			// double static_friction_force = static_mu_ * contact_force_right.z; // reserved
+			double kinetic_friction_force = static_mu_ * contact_force_right.z; // threshold
+			friction_force.x = vw_right_.kp * (friction_proxy.x - pos.x);
+			friction_force.y = vw_right_.kp * (friction_proxy.y - pos.y);
+			friction_force.z = sqrt(friction_force.x*friction_force.x + friction_force.y*friction_force.y);
+			if(friction_force.z > kinetic_friction_force){
+				contact_force_right.x = friction_force.x * kinetic_friction_force / friction_force.z; // normalize
+				contact_force_right.y = friction_force.y * kinetic_friction_force / friction_force.z;
+
+				friction_proxy.x -= (friction_force.x - contact_force_right.x) / vw_right_.kp;
+				friction_proxy.y -= (friction_force.y - contact_force_right.y) / vw_right_.kp;
+			}else{
+				contact_force_right.x = friction_force.x;
+				contact_force_right.y = friction_force.y;
+			}
+			break;
 	}
+	
+	proxy_point_msg_.header.stamp = ros::Time::now();
+	proxy_point_msg_.point = friction_proxy;
+	pubProxyPoint_.publish(proxy_point_msg_);
+
+	left_contact_state_prev = left_contact_state_;
+	right_contact_state_prev = right_contact_state_;
 
 	contact_force.x = contact_force_left.x + contact_force_right.x ;
 	contact_force.y = contact_force_left.y + contact_force_right.y ;
@@ -317,9 +356,11 @@ int main(int argc, char **argv)
 
 	subEEPose_ = nh.subscribe("/ee_pose", 1, CallbackEEPose); //topic que function
 	pubWrench_ = nh.advertise<geometry_msgs::WrenchStamped>("/force/contact", 1); //topic que
+	pubProxyPoint_ = nh.advertise<geometry_msgs::PointStamped>("/proxy/friction", 1); //topic que
 
 	// init global variables
 	wrench_msg_.header.frame_id = "end_effector";
+	proxy_point_msg_.header.frame_id = "world";
 
 	ros::spin();
 
