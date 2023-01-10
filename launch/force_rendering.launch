@@ -11,10 +11,7 @@
 
 	<rosparam command="load" file="$(find multi_modal_force_rendering)/config/virtual_wall.yaml" />
 	<rosparam command="load" file="$(find multi_modal_force_rendering)/config/virtual_guidance.yaml" />
-	<rosparam command="load" file="$(find multi_modal_force_rendering)/config/peg.yaml" />
-
-	<node name="force_rendering_node" pkg="multi_modal_force_rendering" type="multi_modal_force_rendering_node" output="screen"/>
-	
+	<rosparam command="load" file="$(find multi_modal_force_rendering)/config/peg.yaml" />	
 
 	<include file="$(find multi_modal_force_rendering)/launch/master_base_transform.launch"/>
 	<include file="$(find multi_modal_force_rendering)/launch/contact_force.launch">
@@ -31,5 +28,14 @@
 		<arg name="publish_rate" value="$(arg fps)" />
 		<arg name="virtual_wall_width" value="$(arg virtual_wall_width)" />
 	</include>
+
+
+	<arg name="rendering_mode" default="1"/>
+	<arg name="cutoff_freq" default="10"/>
+
+	<node name="force_rendering_node" pkg="multi_modal_force_rendering" type="multi_modal_force_rendering_node" output="screen">
+		<param name="mode" value="$(arg rendering_mode)"/>
+		<param name="cutoff_freq" value="$(arg cutoff_freq)"/>
+	</node>
 
 </launch>
