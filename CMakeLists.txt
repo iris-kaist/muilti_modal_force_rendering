@@ -124,7 +124,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+include
   ${catkin_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
 
@@ -145,7 +145,7 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/multi_modal_force_rendering_node.cpp)
 add_executable(${PROJECT_NAME}_node src/force_rendering.cpp)
-add_executable(contact_force_node src/contact_force.cpp)
+add_executable(contact_force_node src/contact_force.cpp src/contact_friction.cpp)
 add_executable(virtual_guidance_node src/virtual_guidance.cpp)
 add_executable(visualization_node src/visualization_node.cpp)
 add_executable(master_base_transform_node src/master_base_transform.cpp)

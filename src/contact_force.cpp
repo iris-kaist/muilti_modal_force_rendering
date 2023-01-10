@@ -1,17 +1,21 @@
 // Contact force Virtual Wall
 
-#include <math.h>
 #include <ros/ros.h>
 #include <geometry_msgs/Vector3.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/PointStamped.h>
 #include <geometry_msgs/WrenchStamped.h>
 
+#include <contact_friction.h>
+
 using namespace std;
 
 ros::Subscriber subEEPose_;
 ros::Publisher pubWrench_;
 ros::Publisher pubProxyPoint_;
+
+ContactFriction LeftContactFriction_;
+ContactFriction RightContactFriction_;
 
 geometry_msgs::WrenchStamped wrench_msg_;
 geometry_msgs::PoseStamped peg_pose_;
@@ -106,6 +110,20 @@ void PrintPositionState(int position_state){
 	}
 }
 
+void nanFilter(geometry_msgs::Vector3 &data){
+	if(isnan(data.x) != 0){
+		data.x = 0; // is nan or inf?
+		ROS_WARN("x: nan or inf num detected!!!");
+	}
+	if(isnan(data.y) != 0){
+		data.y = 0;
+		ROS_WARN("y: nan or inf num detected!!!");
+	}
+	if(isnan(data.z) != 0){
+		data.z = 0;
+		ROS_WARN("z: nan or inf num detected!!!");
+	}
+}
 
 geometry_msgs::Vector3 ContactForceRendering(const geometry_msgs::Point &pos)
 {
@@ -229,55 +247,41 @@ geometry_msgs::Vector3 ContactForceRendering(const geometry_msgs::Point &pos)
 	contact_force_left.y = 0.0;
 	contact_force_left.z = 0.0;
 
-	static geometry_msgs::Point friction_proxy;
-	static geometry_msgs::Vector3 friction_force;
-
 	switch(left_contact_state_)
 	{
 		case ContactType::LEFT:
 			contact_force_left.y = vw_left_.kp * (contact_point_left - pos.y);
+			contact_force_left = LeftContactFriction_.inject(pos, contact_force_left); // , 2);
 			break;
 		
 		case ContactType::DOWN:
 			contact_force_left.z = vw_left_.kp * (contact_point_up - pos.z);
+			contact_force_left = LeftContactFriction_.inject(pos, contact_force_left); // , 3);
 			break;
+		default:
+			contact_force_left = LeftContactFriction_.inject(pos, contact_force_left); // , 0);
 	}
 
 	switch(right_contact_state_)
 	{
 		case ContactType::RIGHT:
 			contact_force_right.y = vw_right_.kp * (contact_point_right - pos.y);
+			contact_force_right = RightContactFriction_.inject(pos, contact_force_right); // , 2);
 			break;
 		
 		case ContactType::DOWN:
 			contact_force_right.z = vw_right_.kp * (contact_point_up - pos.z);
-			
-			//friction rendering
-			if(right_contact_state_prev != right_contact_state_){ //friction proxy init
-				friction_proxy.x = pos.x;
-				friction_proxy.y = pos.y;
-				friction_proxy.z = contact_point_up - peg_height_/2.;
-			}
-			// double static_friction_force = static_mu_ * contact_force_right.z; // reserved
-			double kinetic_friction_force = static_mu_ * contact_force_right.z; // threshold
-			friction_force.x = vw_right_.kp * (friction_proxy.x - pos.x);
-			friction_force.y = vw_right_.kp * (friction_proxy.y - pos.y);
-			friction_force.z = sqrt(friction_force.x*friction_force.x + friction_force.y*friction_force.y);
-			if(friction_force.z > kinetic_friction_force){
-				contact_force_right.x = friction_force.x * kinetic_friction_force / friction_force.z; // normalize
-				contact_force_right.y = friction_force.y * kinetic_friction_force / friction_force.z;
-
-				friction_proxy.x -= (friction_force.x - contact_force_right.x) / vw_right_.kp;
-				friction_proxy.y -= (friction_force.y - contact_force_right.y) / vw_right_.kp;
-			}else{
-				contact_force_right.x = friction_force.x;
-				contact_force_right.y = friction_force.y;
-			}
+			contact_force_right = RightContactFriction_.inject(pos, contact_force_right); // , 3);
 			break;
+		default:
+			contact_force_right = RightContactFriction_.inject(pos, contact_force_right); // , 0);
 	}
-	
-	proxy_point_msg_.header.stamp = ros::Time::now();
-	proxy_point_msg_.point = friction_proxy;
+	nanFilter(contact_force_left);
+	nanFilter(contact_force_right);
+
+    proxy_point_msg_.header.stamp = ros::Time::now();
+	if(LeftContactFriction_.contact_force_scalar_ > 0) proxy_point_msg_.point = LeftContactFriction_.world_frame_proxy_;
+	else proxy_point_msg_.point = RightContactFriction_.world_frame_proxy_;
 	pubProxyPoint_.publish(proxy_point_msg_);
 
 	left_contact_state_prev = left_contact_state_;
@@ -352,6 +356,11 @@ int main(int argc, char **argv)
 	pnh.getParam("/peg/dimension/height", peg_height_);
 	pnh.getParam("/peg/dimension/radius", peg_rad_);
 
+	double friction_stiffness = vw_right_.kp;
+	pnh.getParam("friction_stiffness", friction_stiffness);
+	pnh.getParam("static_mu", static_mu_);
+	pnh.getParam("kinetic_mu", kinetic_mu_);
+
 	pnh.getParam("max_force", max_force_);
 
 	subEEPose_ = nh.subscribe("/ee_pose", 1, CallbackEEPose); //topic que function
@@ -361,6 +370,12 @@ int main(int argc, char **argv)
 	// init global variables
 	wrench_msg_.header.frame_id = "end_effector";
 	proxy_point_msg_.header.frame_id = "world";
+
+	LeftContactFriction_.updateFrictionParameter(friction_stiffness, static_mu_, kinetic_mu_);
+	RightContactFriction_.updateFrictionParameter(friction_stiffness, static_mu_, kinetic_mu_);
+
+	LeftContactFriction_.updatePegSize(peg_rad_, peg_height_);
+	RightContactFriction_.updatePegSize(peg_rad_, peg_height_);
 
 	ros::spin();
 

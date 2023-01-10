@@ -1,8 +1,14 @@
 <launch>
 	<arg name="max_force" default="1.0"/>
+	<arg name="friction_stiffness" default="1000"/>
+	<arg name="static_mu" default="0.75"/>
+	<arg name="kinetic_mu" default="0.5"/>
 
 	<node name="contact_force_node" pkg="multi_modal_force_rendering" type="contact_force_node" output="screen">
 		<param name="max_force" value="$(arg max_force)"/>
+		<param name="friction_stiffness" value="$(arg friction_stiffness)"/>
+		<param name="static_mu" value="$(arg static_mu)"/>
+		<param name="kinetic_mu" value="$(arg kinetic_mu)"/>
 
 		<!-- <remap from="a" to="b" /> -->
 	</node>

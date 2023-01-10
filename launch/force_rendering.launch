@@ -5,6 +5,10 @@
 	<arg name="max_guidance_force" default="1.0" />
 	<arg name="virtual_wall_width" default="1.0" />
 
+	<arg name="friction_stiffness" default="1000"/>
+	<arg name="static_mu" default="0.75"/>
+	<arg name="kinetic_mu" default="0.5"/>
+
 	<rosparam command="load" file="$(find multi_modal_force_rendering)/config/virtual_wall.yaml" />
 	<rosparam command="load" file="$(find multi_modal_force_rendering)/config/virtual_guidance.yaml" />
 	<rosparam command="load" file="$(find multi_modal_force_rendering)/config/peg.yaml" />
@@ -15,6 +19,10 @@
 	<include file="$(find multi_modal_force_rendering)/launch/master_base_transform.launch"/>
 	<include file="$(find multi_modal_force_rendering)/launch/contact_force.launch">
 		<arg name="max_force" value="$(arg max_contact_force)"/>
+
+		<arg name="friction_stiffness" value="$(arg friction_stiffness)"/>
+		<arg name="static_mu" value="$(arg static_mu)"/>
+		<arg name="kinetic_mu" value="$(arg kinetic_mu)"/>
 	</include>
 	<include file="$(find multi_modal_force_rendering)/launch/virtual_guidance.launch">
 		<arg name="max_force" value="$(arg max_guidance_force)"/>
