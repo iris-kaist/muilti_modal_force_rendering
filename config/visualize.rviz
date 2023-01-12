@@ -4,7 +4,6 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /Global Options1
         - /TF1/Frames1
         - /TF1/Tree1
         - /Friction Proxy1
@@ -23,25 +22,25 @@ Visualization Manager:
   Class: ""
   Displays:
     - Alpha: 1
-      Arrow Width: 0.5
+      Arrow Width: 0.25
       Class: rviz/WrenchStamped
       Enabled: true
-      Force Arrow Scale: 100
+      Force Arrow Scale: 0.5
       Force Color: 204; 51; 51
       Hide Small Values: false
       History Length: 1
       Name: contact
       Queue Size: 10
       Topic: /force/contact
-      Torque Arrow Scale: 2
+      Torque Arrow Scale: 1
       Torque Color: 204; 204; 51
       Unreliable: false
       Value: true
     - Alpha: 1
-      Arrow Width: 0.20000000298023224
+      Arrow Width: 0.25
       Class: rviz/WrenchStamped
       Enabled: true
-      Force Arrow Scale: 1
+      Force Arrow Scale: 0.5
       Force Color: 32; 74; 135
       Hide Small Values: false
       History Length: 1
@@ -52,19 +51,19 @@ Visualization Manager:
       Torque Color: 204; 204; 51
       Unreliable: false
       Value: true
-    - Alpha: 0.5
+    - Alpha: 0.30000001192092896
       Arrow Width: 0.5
       Class: rviz/WrenchStamped
       Enabled: true
-      Force Arrow Scale: 1
-      Force Color: 204; 51; 51
+      Force Arrow Scale: 0.5
+      Force Color: 138; 226; 52
       Hide Small Values: false
       History Length: 1
       Name: multi_modal
       Queue Size: 10
       Topic: /force_feedback
       Torque Arrow Scale: 1
-      Torque Color: 204; 204; 51
+      Torque Color: 255; 255; 255
       Unreliable: false
       Value: true
     - Alpha: 0.5
@@ -173,7 +172,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 3.336047887802124
+      Distance: 4.386921405792236
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -181,9 +180,9 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0
-        Y: 0
-        Z: 0
+        X: 0.006121755111962557
+        Y: -0.1257215142250061
+        Z: 0.28653988242149353
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false

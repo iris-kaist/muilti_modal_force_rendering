@@ -45,6 +45,15 @@ public:
 		input_prev = input;
 		return output_prev;
 	}
+    double uni_update(const double &input){
+		if(fabs(input_prev) < fabs(input)) update(input);
+		else{
+			input_prev = input;
+			output_prev = input;
+			output_prev = alpha * input;
+			return output_prev;
+		}
+	}
 };
 
 typedef struct _HPF_Struct{
@@ -60,6 +69,7 @@ enum Rendering_Mode_{
 	ERROR = 0,
 	ADD_MODE = 1,
 	CONTACT_HPF_MODE = 2,
+	CONTACT_UD_HPF_MODE = 3,
 };
 
 int rendering_mode_ = ADD_MODE;
@@ -86,6 +96,11 @@ void CallbackInterfaceState(const phantom_premium_msgs::TeleoperationDeviceState
 			force_feedback_wrench_.wrench.force.x = contactHPF.x.update(contact_wrench_.force.x) + virtual_guidance_wrench_.force.x;
 			force_feedback_wrench_.wrench.force.y = contactHPF.y.update(contact_wrench_.force.y) + virtual_guidance_wrench_.force.y;
 			force_feedback_wrench_.wrench.force.z = contactHPF.z.update(contact_wrench_.force.z) + virtual_guidance_wrench_.force.z;
+			break;
+		case CONTACT_UD_HPF_MODE:
+			force_feedback_wrench_.wrench.force.x = contactHPF.x.uni_update(contact_wrench_.force.x) + virtual_guidance_wrench_.force.x;
+			force_feedback_wrench_.wrench.force.y = contactHPF.y.uni_update(contact_wrench_.force.y) + virtual_guidance_wrench_.force.y;
+			force_feedback_wrench_.wrench.force.z = contactHPF.z.uni_update(contact_wrench_.force.z) + virtual_guidance_wrench_.force.z;
 			break;
 		default:
 			force_feedback_wrench_.wrench.force.x = 0;

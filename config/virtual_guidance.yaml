@@ -4,5 +4,5 @@ virtual_guidance:
     x: 0.0
     y: 0.1 #[m]
     z: 0.0
-  stiffness: 20 # N/m
+  stiffness: 50 # N/m
   damping: 0
